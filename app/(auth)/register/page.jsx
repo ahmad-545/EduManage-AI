@@ -231,7 +231,7 @@ export default function TeacherRegisterPage() {
               Live Demo: Instant 1-Click Access
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
             <button
               type="button"
               disabled={Boolean(demoLoadingRole)}
