@@ -119,11 +119,19 @@ export default function StudentDashboardPage() {
           {/* Quick Shortcuts */}
           <div className="flex flex-wrap items-center gap-2">
             <Link
-              href="/student/schedule"
+              href="/student/profile"
               className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs transition flex items-center gap-1.5 shadow-xs"
             >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>Full Timetable</span>
+              <User className="w-3.5 h-3.5" />
+              <span>My Profile & Account</span>
+            </Link>
+
+            <Link
+              href="/student/schedule"
+              className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl text-xs border border-slate-200 transition flex items-center gap-1.5 shadow-xs"
+            >
+              <Calendar className="w-3.5 h-3.5 text-sky-600" />
+              <span>Timetable</span>
             </Link>
 
             <Link

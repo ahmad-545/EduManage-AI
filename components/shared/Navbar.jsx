@@ -51,15 +51,40 @@ export default function Navbar() {
       {/* User profile & actions */}
       {user && (
         <div className="flex items-center gap-3 md:gap-4">
-          <div className="hidden sm:flex flex-col items-end text-right">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-800">{user.name}</span>
-              {getRoleBadge(user.role)}
+          {user.role === 'student' ? (
+            <Link
+              href="/student/profile"
+              className="hidden sm:flex flex-col items-end text-right hover:opacity-80 transition group"
+              title="View Student Profile"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-800 group-hover:text-sky-600 transition">{user.name}</span>
+                {getRoleBadge(user.role)}
+              </div>
+              <span className="text-[11px] text-slate-500 font-mono">{user.email}</span>
+            </Link>
+          ) : (
+            <div className="hidden sm:flex flex-col items-end text-right">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-800">{user.name}</span>
+                {getRoleBadge(user.role)}
+              </div>
+              <span className="text-[11px] text-slate-500 font-mono">{user.email}</span>
             </div>
-            <span className="text-[11px] text-slate-500 font-mono">{user.email}</span>
-          </div>
+          )}
 
           <div className="h-7 w-px bg-slate-200 hidden sm:block" />
+
+          {user.role === 'student' && (
+            <Link
+              href="/student/profile"
+              title="My Student Profile"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 text-xs font-semibold transition"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Profile</span>
+            </Link>
+          )}
 
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}

@@ -11,7 +11,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Unauthorized: Student session required' }, { status: 401 });
     }
 
-    const { newPassword } = await req.json();
+    const { currentPassword, newPassword } = await req.json();
     if (!newPassword || newPassword.length < 6) {
       return NextResponse.json(
         { error: 'Password must be at least 6 characters long' },
@@ -23,6 +23,16 @@ export async function POST(req) {
     const student = await Student.findById(session.user.id);
     if (!student) {
       return NextResponse.json({ error: 'Student record not found' }, { status: 404 });
+    }
+
+    if (currentPassword) {
+      const isMatch = await bcrypt.compare(currentPassword, student.password);
+      if (!isMatch) {
+        return NextResponse.json(
+          { error: 'Current password is incorrect. Please enter your existing password correctly.' },
+          { status: 400 }
+        );
+      }
     }
 
     const salt = await bcrypt.genSalt(10);

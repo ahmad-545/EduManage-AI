@@ -27,10 +27,6 @@ export default function TeacherQuizzesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', text: '' });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = async () => {
     try {
       setLoading(true);
@@ -53,6 +49,10 @@ export default function TeacherQuizzesPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleCreateQuiz = async (e) => {
     e.preventDefault();

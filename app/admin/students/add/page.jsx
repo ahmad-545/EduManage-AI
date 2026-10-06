@@ -21,11 +21,19 @@ import {
   Send,
   Sparkles,
   ExternalLink,
+  DollarSign,
+  CreditCard,
+  Receipt,
+  Calendar,
 } from 'lucide-react';
 
 export default function AddStudentPage() {
   const router = useRouter();
   const [existingClasses, setExistingClasses] = useState([]);
+
+  const getCurrentMonthName = () =>
+    new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
+
   const [formData, setFormData] = useState({
     name: '',
     className: '',
@@ -33,6 +41,11 @@ export default function AddStudentPage() {
     rollNumber: '',
     parentPhone: '',
     password: '',
+    monthlyFee: 5000,
+    admissionFee: 0,
+    initialFeeStatus: 'paid', // 'paid' | 'pending'
+    initialFeeMonth: getCurrentMonthName(),
+    paymentMethod: 'Cash',
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -212,9 +225,25 @@ export default function AddStudentPage() {
               </span>
             </div>
 
-            <div className="flex items-center justify-between py-1">
+            <div className="flex items-center justify-between py-1 border-b border-slate-200">
               <span className="text-slate-500 font-sans">Parent WhatsApp:</span>
               <span className="text-slate-800 font-bold">{parentPhone}</span>
+            </div>
+
+            <div className="flex items-center justify-between py-1">
+              <span className="text-slate-500 font-sans">Monthly Fee / Invoice:</span>
+              <div className="text-right">
+                <span className="text-emerald-700 font-bold">
+                  PKR {(formData.monthlyFee || 5000).toLocaleString()} / month
+                </span>
+                <span className={`ml-2 px-2 py-0.5 rounded text-[10px] font-semibold border ${
+                  formData.initialFeeStatus === 'paid'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : 'bg-amber-50 text-amber-800 border-amber-300'
+                }`}>
+                  {formData.initialFeeStatus === 'paid' ? 'Paid at Admission' : 'Challan Pending'}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -247,7 +276,15 @@ export default function AddStudentPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+            <Link
+              href={`/admin/students/${createdStudent.student._id}`}
+              className="w-full sm:flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs shadow-xs transition text-center flex items-center justify-center gap-1.5"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>View 360° Profile & Fees</span>
+            </Link>
+
             <button
               onClick={() => {
                 setCreatedStudent(null);
@@ -258,18 +295,23 @@ export default function AddStudentPage() {
                   rollNumber: '',
                   parentPhone: '',
                   password: '',
+                  monthlyFee: 5000,
+                  admissionFee: 0,
+                  initialFeeStatus: 'paid',
+                  initialFeeMonth: getCurrentMonthName(),
+                  paymentMethod: 'Cash',
                 });
               }}
-              className="flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs shadow-sm transition text-center"
+              className="w-full sm:flex-1 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs shadow-xs transition text-center"
             >
               Admit Another Student
             </button>
 
             <Link
               href="/admin/students"
-              className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium border border-slate-200 transition text-center"
+              className="w-full sm:w-auto py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-medium border border-slate-200 transition text-center"
             >
-              View Students List
+              Directory
             </Link>
           </div>
         </div>
@@ -374,6 +416,94 @@ export default function AddStudentPage() {
                     className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white font-mono"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Student Fee Structure & Admission Voucher */}
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                  <DollarSign className="w-4 h-4 text-emerald-600" />
+                  Student Fee Structure & Admission Invoice
+                </label>
+                <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-lg border border-emerald-200">
+                  Total Initial Invoice: PKR {(Number(formData.monthlyFee || 0) + Number(formData.admissionFee || 0)).toLocaleString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                    Monthly Tuition Fee (PKR)
+                  </label>
+                  <div className="relative">
+                    <DollarSign className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={formData.monthlyFee}
+                      onChange={(e) => setFormData({ ...formData, monthlyFee: Number(e.target.value) })}
+                      placeholder="5000"
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                    Admission / Registration Fee (PKR, Optional)
+                  </label>
+                  <div className="relative">
+                    <Receipt className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="number"
+                      min="0"
+                      value={formData.admissionFee}
+                      onChange={(e) => setFormData({ ...formData, admissionFee: Number(e.target.value) })}
+                      placeholder="0"
+                      className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1 border-t border-slate-200/80">
+                <div>
+                  <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                    Initial Fee Invoice Status ({formData.initialFeeMonth})
+                  </label>
+                  <select
+                    value={formData.initialFeeStatus}
+                    onChange={(e) => setFormData({ ...formData, initialFeeStatus: e.target.value })}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  >
+                    <option value="paid">Paid (Received at Admission)</option>
+                    <option value="pending">Pending (Payable / Challan Generated)</option>
+                  </select>
+                </div>
+
+                {formData.initialFeeStatus === 'paid' ? (
+                  <div>
+                    <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                      Payment Method Received
+                    </label>
+                    <select
+                      value={formData.paymentMethod}
+                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    >
+                      <option value="Cash">Cash at Counter</option>
+                      <option value="Bank Transfer">Bank Transfer / Online</option>
+                      <option value="EasyPaisa">EasyPaisa</option>
+                      <option value="JazzCash">JazzCash</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-[11px] text-amber-700 bg-amber-50 p-2 rounded-xl border border-amber-200 mt-5">
+                    Challan marked as pending; parent will pay later.
+                  </div>
+                )}
               </div>
             </div>
 

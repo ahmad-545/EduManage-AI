@@ -26,12 +26,7 @@ export default function TeacherSchedulePage() {
     return daysOfWeek.includes(today) ? today : 'Monday';
   };
 
-  const [selectedDay, setSelectedDay] = useState('Monday');
-
-  useEffect(() => {
-    setSelectedDay(getTodayName());
-    fetchSchedule();
-  }, []);
+  const [selectedDay, setSelectedDay] = useState(getTodayName);
 
   const fetchSchedule = async () => {
     try {
@@ -46,6 +41,10 @@ export default function TeacherSchedulePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSchedule();
+  }, []);
 
   // Filter slots for active day
   const activeDaySlots = schedule.filter((s) => s.day === selectedDay);

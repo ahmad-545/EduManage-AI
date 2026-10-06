@@ -18,6 +18,7 @@ import {
   Sparkles,
   Layers,
   FileText,
+  User,
 } from 'lucide-react';
 
 export default function Sidebar({ role }) {
@@ -26,6 +27,8 @@ export default function Sidebar({ role }) {
   const adminLinks = [
     { label: 'Dashboard Overview', href: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'All Teachers', href: '/admin/teachers', icon: Users },
+    { label: 'Teacher Attendance', href: '/admin/teachers/attendance', icon: ClipboardCheck },
+    { label: 'Teacher Salaries', href: '/admin/teachers/salaries', icon: DollarSign },
     { label: 'Pending Approvals', href: '/admin/teachers/pending', icon: UserCheck },
     { label: 'Students Directory', href: '/admin/students', icon: GraduationCap },
     { label: 'Classes & Subjects', href: '/admin/classes', icon: Layers },
@@ -36,12 +39,14 @@ export default function Sidebar({ role }) {
   const teacherLinks = [
     { label: 'Dashboard', href: '/teacher/dashboard', icon: LayoutDashboard },
     { label: 'My Classes & Lectures', href: '/teacher/my-classes', icon: BookOpen },
+    { label: 'My Attendance Log', href: '/teacher/attendance-status', icon: ClipboardCheck },
     { label: 'Quizzes & Tests', href: '/teacher/quizzes', icon: Award },
     { label: 'Weekly Timetable', href: '/teacher/schedule', icon: Calendar },
   ];
 
   const studentLinks = [
     { label: 'Student Dashboard', href: '/student/dashboard', icon: LayoutDashboard },
+    { label: 'My Profile & Account', href: '/student/profile', icon: User },
     { label: 'Lecture Timetable', href: '/student/schedule', icon: Calendar },
     { label: 'Exam Datesheet', href: '/student/datesheet', icon: FileSpreadsheet },
     { label: 'Roll Number Slip', href: '/student/roll-number-slip', icon: FileText },

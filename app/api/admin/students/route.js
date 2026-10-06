@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import connectToDatabase from '../../../../lib/mongodb';
 import Student from '../../../../models/Student';
 import Class from '../../../../models/Class';
+import Fee from '../../../../models/Fee';
 import { getServerAuthSession } from '../../../../lib/permissions';
 import { sendStudentCredentialsWhatsApp } from '../../../../lib/whatsapp';
 
@@ -20,7 +22,46 @@ export async function GET(req) {
       .select('-password')
       .sort({ classId: 1, rollNumber: 1 });
 
-    return NextResponse.json({ students });
+    const currentMonth = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
+    const studentIds = students.map((s) => s._id);
+    const fees = await Fee.find({ studentId: { $in: studentIds } });
+
+    const feeMap = {};
+    fees.forEach((f) => {
+      const sid = f.studentId.toString();
+      if (!feeMap[sid]) {
+        feeMap[sid] = {
+          currentMonthStatus: 'not_generated',
+          totalPaid: 0,
+          totalPending: 0,
+          hasPending: false,
+          latestFeeMonth: f.month,
+        };
+      }
+      if (f.month === currentMonth) {
+        feeMap[sid].currentMonthStatus = f.status;
+      }
+      if (f.status === 'paid') {
+        feeMap[sid].totalPaid += f.amount || 0;
+      } else {
+        feeMap[sid].totalPending += f.amount || 0;
+        feeMap[sid].hasPending = true;
+      }
+    });
+
+    const enhancedStudents = students.map((s) => {
+      const sObj = s.toObject();
+      const fInfo = feeMap[s._id.toString()] || {
+        currentMonthStatus: 'not_generated',
+        totalPaid: 0,
+        totalPending: 0,
+        hasPending: false,
+      };
+      sObj.feeSummary = fInfo;
+      return sObj;
+    });
+
+    return NextResponse.json({ students: enhancedStudents });
   } catch (err) {
     console.error('Fetch students error:', err);
     return NextResponse.json({ error: err.message }, { status: 500 });
@@ -34,7 +75,20 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Unauthorized: Admin role required' }, { status: 403 });
     }
 
-    const { name, classId, className, section, rollNumber, parentPhone, password: customPassword } = await req.json();
+    const {
+      name,
+      classId,
+      className,
+      section,
+      rollNumber,
+      parentPhone,
+      password: customPassword,
+      monthlyFee,
+      admissionFee,
+      initialFeeStatus,
+      initialFeeMonth,
+      paymentMethod,
+    } = await req.json();
 
     if (!name || (!classId && !className) || !rollNumber || !parentPhone) {
       return NextResponse.json(
@@ -74,6 +128,8 @@ export async function POST(req) {
     const resolvedClassId = targetClass._id;
     const targetSection = (section || targetClass.section || 'A').toUpperCase().trim();
     const parsedRoll = parseInt(rollNumber, 10);
+    const parsedMonthlyFee = monthlyFee !== undefined && !isNaN(Number(monthlyFee)) ? Math.max(0, Number(monthlyFee)) : 5000;
+    const parsedAdmissionFee = admissionFee !== undefined && !isNaN(Number(admissionFee)) ? Math.max(0, Number(admissionFee)) : 0;
 
     // Verify compound uniqueness (classId, section, rollNumber)
     const duplicate = await Student.findOne({
@@ -124,7 +180,28 @@ export async function POST(req) {
       password: hashedPassword,
       parentPhone: parentPhone.trim(),
       mustChangePassword: true,
+      monthlyFee: parsedMonthlyFee,
+      admissionFee: parsedAdmissionFee,
     });
+
+    // Create initial monthly fee challan / receipt
+    let createdFee = null;
+    const currentMonthName = initialFeeMonth || new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date());
+    const isPaid = initialFeeStatus === 'paid';
+    const totalAdmissionInvoice = parsedMonthlyFee + parsedAdmissionFee;
+
+    if (totalAdmissionInvoice > 0) {
+      createdFee = await Fee.create({
+        studentId: student._id,
+        month: currentMonthName,
+        amount: totalAdmissionInvoice,
+        status: isPaid ? 'paid' : 'pending',
+        paidDate: isPaid ? new Date() : null,
+        dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        paymentMethod: isPaid ? (paymentMethod || 'Cash') : 'Cash',
+        transactionId: isPaid ? `ADM-${Date.now().toString().slice(-6)}` : '',
+      });
+    }
 
     // Send credentials to parent's WhatsApp / phone
     let whatsappResult = null;

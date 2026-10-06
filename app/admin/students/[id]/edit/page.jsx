@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Save,
   ShieldCheck,
+  DollarSign,
 } from 'lucide-react';
 
 export default function EditStudentPage() {
@@ -27,6 +28,9 @@ export default function EditStudentPage() {
     rollNumber: '',
     parentPhone: '',
     email: '',
+    monthlyFee: 5000,
+    admissionFee: 0,
+    password: '',
   });
 
   const [loading, setLoading] = useState(true);
@@ -61,6 +65,9 @@ export default function EditStudentPage() {
           rollNumber: s.rollNumber || '',
           parentPhone: s.parentPhone || '',
           email: s.email || '',
+          monthlyFee: s.monthlyFee ?? 5000,
+          admissionFee: s.admissionFee ?? 0,
+          password: '',
         });
       }
     } catch (err) {
@@ -241,6 +248,37 @@ export default function EditStudentPage() {
                   className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Monthly Tuition Fee (PKR)
+              </label>
+              <div className="relative">
+                <DollarSign className="w-4 h-4 text-emerald-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.monthlyFee}
+                  onChange={(e) => setFormData({ ...formData, monthlyFee: Number(e.target.value) })}
+                  className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                Admission Fee (PKR)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={formData.admissionFee}
+                onChange={(e) => setFormData({ ...formData, admissionFee: Number(e.target.value) })}
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
             </div>
           </div>
 

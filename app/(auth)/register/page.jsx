@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
-import { GraduationCap, User, Mail, Lock, Phone, ArrowRight, CheckCircle, Clock } from 'lucide-react';
+import { GraduationCap, User, Mail, Lock, Phone, ArrowRight, CheckCircle2, Clock, Sparkles } from 'lucide-react';
 
 export default function TeacherRegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,6 +17,7 @@ export default function TeacherRegisterPage() {
 
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [demoLoadingRole, setDemoLoadingRole] = useState(null);
   const [registeredSuccess, setRegisteredSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -36,11 +40,42 @@ export default function TeacherRegisterPage() {
         return;
       }
 
-      setRegisteredSuccess(true);
-      setLoading(false);
+      // Automatically sign the educator in immediately!
+      const signInRes = await signIn('credentials', {
+        redirect: false,
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (!signInRes?.error) {
+        router.push('/teacher/dashboard');
+        router.refresh();
+      } else {
+        setRegisteredSuccess(true);
+        setLoading(false);
+      }
     } catch (err) {
       setErrorMsg('An unexpected network error occurred. Please try again.');
       setLoading(false);
+    }
+  };
+
+  const handleInstantDemoLogin = async (roleEmail, rolePass, roleKey, targetRoute) => {
+    setDemoLoadingRole(roleKey);
+    try {
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: roleEmail,
+        password: rolePass,
+      });
+      if (!res?.error) {
+        router.push(targetRoute);
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Instant demo login failed:', err);
+    } finally {
+      setDemoLoadingRole(null);
     }
   };
 
@@ -58,19 +93,19 @@ export default function TeacherRegisterPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           {registeredSuccess ? (
             <div className="text-center py-4">
-              <div className="w-14 h-14 bg-amber-50 border border-amber-200 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                <Clock className="w-7 h-7" />
+              <div className="w-14 h-14 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
-              <h2 className="text-lg font-bold text-slate-900 mb-1">Registration Submitted!</h2>
+              <h2 className="text-lg font-bold text-slate-900 mb-1">Registration Complete!</h2>
               <p className="text-xs text-slate-600 leading-relaxed mb-5">
-                Your educator account has been submitted with status <span className="text-amber-700 font-bold uppercase">Pending</span>. The Super Admin will review and approve your profile, and assign your classes and subjects before you can log in.
+                Your educator account is <span className="text-emerald-700 font-bold uppercase">Active</span>. You can now access the Teacher Portal and start managing classes immediately.
               </p>
 
               <Link
-                href="/login"
-                className="w-full inline-flex items-center justify-center py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs transition shadow-sm"
+                href="/teacher/dashboard"
+                className="w-full inline-flex items-center justify-center py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs transition shadow-sm"
               >
-                Return to Login Page
+                Go to Teacher Dashboard
               </Link>
             </div>
           ) : (
@@ -78,7 +113,7 @@ export default function TeacherRegisterPage() {
               <div className="mb-5">
                 <h2 className="text-lg font-bold text-slate-900">Faculty Registration</h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Sign up for an educator account. Super Admin approval is required.
+                  Sign up for an educator account with instant demo activation.
                 </p>
               </div>
 
@@ -180,12 +215,59 @@ export default function TeacherRegisterPage() {
                     href="/login"
                     className="font-semibold text-sky-600 hover:text-sky-700 transition"
                   >
-                    Log In
+                    Go to Sign In
                   </Link>
                 </p>
               </div>
             </>
           )}
+        </div>
+
+        {/* Quick Demo Accounts Helper for Live Presentation */}
+        <div className="mt-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-center gap-1.5 mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <p className="text-[11px] font-bold text-slate-600 uppercase tracking-wider text-center">
+              Live Demo: Instant 1-Click Access
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-xs">
+            <button
+              type="button"
+              disabled={Boolean(demoLoadingRole)}
+              onClick={() => handleInstantDemoLogin('admin@edumanage.pk', 'AdminPass123!', 'admin', '/admin/dashboard')}
+              className="p-2.5 bg-slate-50 hover:bg-sky-50 text-slate-700 rounded-xl border border-slate-200 transition text-center disabled:opacity-60"
+            >
+              <p className="font-bold text-sky-700 text-xs">Super Admin</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                {demoLoadingRole === 'admin' ? 'Logging in...' : 'Enter Admin'}
+              </p>
+            </button>
+
+            <button
+              type="button"
+              disabled={Boolean(demoLoadingRole)}
+              onClick={() => handleInstantDemoLogin('teacher.ahmed@edumanage.pk', 'TeacherPass123!', 'teacher', '/teacher/dashboard')}
+              className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-700 rounded-xl border border-slate-200 transition text-center disabled:opacity-60"
+            >
+              <p className="font-bold text-emerald-700 text-xs">Faculty</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                {demoLoadingRole === 'teacher' ? 'Logging in...' : 'Enter Teacher'}
+              </p>
+            </button>
+
+            <button
+              type="button"
+              disabled={Boolean(demoLoadingRole)}
+              onClick={() => handleInstantDemoLogin('10a-001@edumanage.pk', 'StudentPass123!', 'student', '/student/dashboard')}
+              className="p-2.5 bg-slate-50 hover:bg-indigo-50 text-slate-700 rounded-xl border border-slate-200 transition text-center disabled:opacity-60"
+            >
+              <p className="font-bold text-indigo-700 text-xs">Student</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">
+                {demoLoadingRole === 'student' ? 'Logging in...' : 'Enter Student'}
+              </p>
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -16,6 +16,10 @@ import {
   Clock,
   Building2,
   GraduationCap,
+  CheckCircle2,
+  XCircle,
+  Coffee,
+  ClipboardCheck,
 } from 'lucide-react';
 
 export default function TeacherDashboardPage() {
@@ -23,6 +27,7 @@ export default function TeacherDashboardPage() {
   const [data, setData] = useState({ classes: [], assignedSubjects: [], students: [] });
   const [schedule, setSchedule] = useState([]);
   const [insights, setInsights] = useState(null);
+  const [attStatus, setAttStatus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -42,19 +47,22 @@ export default function TeacherDashboardPage() {
   const loadTeacherData = async () => {
     try {
       setLoading(true);
-      const [classRes, schedRes, insightsRes] = await Promise.all([
+      const [classRes, schedRes, insightsRes, attRes] = await Promise.all([
         fetch('/api/teacher/my-classes'),
         fetch('/api/teacher/schedule'),
         fetch('/api/ai/insights'),
+        fetch('/api/teacher/attendance-status'),
       ]);
 
       const classData = await classRes.json();
       const schedData = await schedRes.json();
       const insData = await insightsRes.json();
+      const attData = await attRes.json();
 
       setData(classData);
       setSchedule(schedData.schedule || []);
       setInsights(insData);
+      setAttStatus(attData);
     } catch (err) {
       console.error('Failed to load teacher dashboard:', err);
     } finally {
@@ -100,6 +108,125 @@ export default function TeacherDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Attendance Status Card for Today */}
+      {attStatus && (
+        <div
+          className={`p-4 rounded-2xl border shadow-2xs transition ${
+            attStatus.todayRecord?.status === 'present'
+              ? 'bg-emerald-50/70 border-emerald-200'
+              : attStatus.todayRecord?.status === 'absent'
+              ? 'bg-rose-50/70 border-rose-200'
+              : attStatus.todayRecord?.status === 'late'
+              ? 'bg-amber-50/70 border-amber-200'
+              : attStatus.todayRecord?.status === 'half-day'
+              ? 'bg-purple-50/70 border-purple-200'
+              : 'bg-slate-50 border-slate-200'
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  attStatus.todayRecord?.status === 'present'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : attStatus.todayRecord?.status === 'absent'
+                    ? 'bg-rose-100 text-rose-700'
+                    : attStatus.todayRecord?.status === 'late'
+                    ? 'bg-amber-100 text-amber-700'
+                    : attStatus.todayRecord?.status === 'half-day'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-slate-200 text-slate-600'
+                }`}
+              >
+                {attStatus.todayRecord?.status === 'present' && <CheckCircle2 className="w-5 h-5" />}
+                {attStatus.todayRecord?.status === 'absent' && <XCircle className="w-5 h-5" />}
+                {attStatus.todayRecord?.status === 'late' && <Clock className="w-5 h-5" />}
+                {attStatus.todayRecord?.status === 'half-day' && <Coffee className="w-5 h-5" />}
+                {(!attStatus.todayRecord?.isMarked || attStatus.todayRecord?.status === 'not-marked') && (
+                  <ClipboardCheck className="w-5 h-5" />
+                )}
+              </div>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xs font-bold text-slate-900">Today&apos;s Faculty Attendance</h3>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      attStatus.todayRecord?.status === 'present'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : attStatus.todayRecord?.status === 'absent'
+                        ? 'bg-rose-100 text-rose-800'
+                        : attStatus.todayRecord?.status === 'late'
+                        ? 'bg-amber-100 text-amber-800'
+                        : attStatus.todayRecord?.status === 'half-day'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {attStatus.todayRecord?.status === 'present' && 'Present'}
+                    {attStatus.todayRecord?.status === 'absent' && 'Absent'}
+                    {attStatus.todayRecord?.status === 'late' && 'Late Arrival'}
+                    {attStatus.todayRecord?.status === 'half-day' && 'Half Leave'}
+                    {(!attStatus.todayRecord?.isMarked || attStatus.todayRecord?.status === 'not-marked') &&
+                      'Pending Verification'}
+                  </span>
+                </div>
+
+                <p className="text-xs text-slate-600 mt-0.5">
+                  {attStatus.todayRecord?.status === 'present' &&
+                    'You are marked Present today by the administration office.'}
+                  {attStatus.todayRecord?.status === 'absent' &&
+                    'You have been recorded as Absent today. Please check with admin if this is an error.'}
+                  {attStatus.todayRecord?.status === 'late' &&
+                    'You have been marked Late for today\'s morning punch-in.'}
+                  {attStatus.todayRecord?.status === 'half-day' &&
+                    'You have been recorded on Half Leave for today.'}
+                  {(!attStatus.todayRecord?.isMarked || attStatus.todayRecord?.status === 'not-marked') &&
+                    'Today\'s attendance has not been registered yet by administration.'}
+                </p>
+
+                {/* If Half-Day: Show Missed Lectures & Remarks */}
+                {attStatus.todayRecord?.status === 'half-day' && (
+                  <div className="mt-2 space-y-1">
+                    {attStatus.todayRecord?.missedLectures &&
+                      attStatus.todayRecord.missedLectures.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[11px] font-semibold text-purple-900">
+                            Missed Lecture(s):
+                          </span>
+                          {attStatus.todayRecord.missedLectures.map((lec, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 rounded-md bg-purple-200 text-purple-900 text-[10px] font-bold"
+                            >
+                              {lec}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    {attStatus.todayRecord?.remarks && (
+                      <p className="text-[11px] text-purple-800 italic">
+                        <strong>Admin Note:</strong> {attStatus.todayRecord.remarks}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Link
+                href="/teacher/attendance-status"
+                className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-2xs flex items-center gap-1.5 transition whitespace-nowrap"
+              >
+                <ClipboardCheck className="w-3.5 h-3.5 text-sky-600" />
+                Attendance Log ({attStatus.stats?.attendancePercentage || 100}%)
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ClassWiseStudentList from '../../../components/shared/ClassWiseStudentList';
-import { GraduationCap, Plus, CheckCircle2, AlertCircle } from 'lucide-react';
+import { GraduationCap, Plus, CheckCircle2, AlertCircle, DollarSign, Clock, Users, ArrowRight } from 'lucide-react';
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState([]);
@@ -57,25 +57,88 @@ export default function AdminStudentsPage() {
     }
   };
 
+  const totalMonthlyTuition = students.reduce((sum, s) => sum + (s.monthlyFee || 5000), 0);
+  const paidCount = students.filter((s) => s.feeSummary?.currentMonthStatus === 'paid').length;
+  const pendingCount = students.filter((s) => s.feeSummary?.currentMonthStatus === 'pending' || s.feeSummary?.hasPending).length;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Students Directory & Admissions
+            Students Directory & Profiles
           </h1>
           <p className="text-xs text-slate-600 mt-1">
-            Manage student cohorts, credentials, roll numbers, and parental WhatsApp contacts.
+            Manage class-wise student cohorts, profiles, monthly fee structures, attendance, and parental WhatsApp contacts.
           </p>
         </div>
 
-        <Link
-          href="/admin/students/add"
-          className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs shadow-sm transition flex items-center gap-2 self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          Admit New Student
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/admin/fees"
+            className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs border border-slate-200 transition flex items-center gap-1.5"
+          >
+            <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Fee Ledger</span>
+          </Link>
+
+          <Link
+            href="/admin/students/add"
+            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl text-xs shadow-xs transition flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Admit New Student</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* KPI Stats Overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-slate-500">Enrolled Students</span>
+            <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <GraduationCap className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-bold text-slate-900 font-mono">{students.length}</div>
+          <p className="text-[11px] text-slate-500 mt-0.5">{classes.length} active classes & sections</p>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-slate-500">Monthly Tuition Volume</span>
+            <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <DollarSign className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-bold text-slate-900 font-mono">
+            PKR {totalMonthlyTuition.toLocaleString()}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-0.5">Sum of all student monthly fees</p>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-slate-500">Fees Paid (Current Month)</span>
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-bold text-emerald-700 font-mono">{paidCount}</div>
+          <p className="text-[11px] text-emerald-600 mt-0.5">Fee received & verified</p>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-semibold text-slate-500">Pending / Overdue Fees</span>
+            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="text-xl font-bold text-amber-700 font-mono">{pendingCount}</div>
+          <p className="text-[11px] text-amber-600 mt-0.5">Students with unpaid challans</p>
+        </div>
       </div>
 
       {feedback.text && (

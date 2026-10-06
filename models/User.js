@@ -35,6 +35,10 @@ const UserSchema = new mongoose.Schema(
       default: 'pending',
       required: true,
     },
+    baseSalary: {
+      type: Number,
+      default: 50000,
+    },
   },
   {
     timestamps: true,

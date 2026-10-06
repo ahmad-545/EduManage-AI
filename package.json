@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "node scripts/seedSuperAdmin.js",
+    "verify": "node scripts/testVerification.js",
+    "test:audit": "node scripts/testFullSystem.js"
   },
   "dependencies": {
     "@types/bcryptjs": "^2.4.6",

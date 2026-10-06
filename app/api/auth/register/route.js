@@ -42,13 +42,15 @@ export async function POST(req) {
       password: hashedPassword,
       phone: phone ? phone.trim() : '',
       role: 'teacher',
-      status: 'pending', // Account starts as pending approval
+      status: 'active', // Auto-activated for seamless demo login
+      baseSalary: 50000,
     });
 
     return NextResponse.json(
       {
-        message: 'Registration successful! Your account is pending Super Admin approval. You can log in once approved.',
+        message: 'Registration successful! Your account is activated and ready for login.',
         teacherId: newTeacher._id,
+        email: normalizedEmail,
       },
       { status: 201 }
     );

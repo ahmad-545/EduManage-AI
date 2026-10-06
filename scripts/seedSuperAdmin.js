@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema({
   phone: String,
   role: { type: String, enum: ['admin', 'teacher'] },
   status: { type: String, enum: ['pending', 'active'] },
+  baseSalary: { type: Number, default: 50000 },
 }, { timestamps: true });
 
 const ClassSchema = new mongoose.Schema({
@@ -53,6 +54,9 @@ const StudentSchema = new mongoose.Schema({
   password: String,
   parentPhone: String,
   mustChangePassword: { type: Boolean, default: true },
+  admissionFee: { type: Number, default: 5000 },
+  monthlyFee: { type: Number, default: 4500 },
+  admissionDate: { type: Date, default: Date.now },
 }, { timestamps: true });
 
 const TeacherClassSchema = new mongoose.Schema({
@@ -191,6 +195,7 @@ async function seed() {
       phone: '+92 321 9876543',
       role: 'teacher',
       status: 'active',
+      baseSalary: 65000,
     });
     console.log(`[OK] Created Approved Teacher: ${teacherEmail} (Password: TeacherPass123!)`);
   }
@@ -266,6 +271,9 @@ async function seed() {
       password: sPass,
       parentPhone: '+92 300 8887766',
       mustChangePassword: true,
+      admissionFee: 5000,
+      monthlyFee: 4500,
+      admissionDate: new Date('2026-08-01'),
     });
     console.log(`[OK] Created Student Bilal Khan: ${studentEmail} (Password: StudentPass123!)`);
 
