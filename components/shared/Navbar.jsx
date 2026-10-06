@@ -44,7 +44,7 @@ export default function Navbar() {
           <span className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
             EduManage <span className="text-xs px-2 py-0.5 rounded-md bg-sky-100 text-sky-700 font-semibold border border-sky-200 font-mono">CMS</span>
           </span>
-          <span className="text-[11px] text-slate-500 block -mt-0.5">School & Academy Management System</span>
+          <span className="text-[11px] text-slate-500 hidden sm:block -mt-0.5">School & Academy Management System</span>
         </div>
       </Link>
 
